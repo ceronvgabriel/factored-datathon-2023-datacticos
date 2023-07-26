@@ -1,0 +1,1 @@
+./azcopy.exe copy "https://safactoreddatathon.blob.core.windows.net/source-files/?sp=rle&st=2023-07-25T18%3A12%3A36Z&se=2023-08-13T02%3A12%3A36Z&sv=2022-11-02&sr=c&sig=l2TCTwPWN8LSM922lR%2Fw78mZWQK2ErEOQDUaCJosIaw%3D" "C:\Users\GABRIEL\Desktop\Datathon" --overwrite=prompt --check-md5 FailIfDifferent --from-to=BlobLocal --recursive --log-level=INFO
