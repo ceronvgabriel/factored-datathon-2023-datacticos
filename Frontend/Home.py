@@ -22,7 +22,7 @@ def load_data():
 
         category_file = pd.read_parquet(f'{path_to_master_data}main_cat={category}/', engine="pyarrow")
 
-        #Add category column merging Cell Phones & Accessories and Cell Phones &amp; Accessories
+        #Add category column, merging Cell Phones & Accessories and Cell Phones &amp; Accessories
         if category == "Cell Phones &amp; Accessories":
             category_file['main_cat'] = "Cell Phones & Accessories"
         else:
@@ -39,42 +39,40 @@ st.write(df_all.head(5))
 
 #The following could be optimized by storing the queries for subsequent use
 
-"Show all unique categories sorted alphabetically"
-categories=df_all['main_cat'].unique()
-categories.sort()
-st.write(categories)
+#"Select a category"
+unique_categories=df_all['main_cat'].unique()
+unique_categories.sort()
+st.write(unique_categories) # Show all unique categories sorted alphabetically
+selected_category = st.selectbox('Select a category', unique_categories)
 
-selected_category = st.selectbox('Select a category', categories)
-
-"Select a brand"
-brands=df_all[df_all['main_cat']==selected_category]['brand'].unique()
+#"Select a brand"
+selected_categories_table=df_all[df_all['main_cat']==selected_category]
+brands=selected_categories_table['brand'].unique()
 brands.sort()
 selected_brand = st.selectbox('Select a brand', brands)
 
-"Select a product"
-products=df_all[(df_all['main_cat']==selected_category) & (df_all['brand']==selected_brand)]['title'].unique()
-products.sort()
-selected_product = st.selectbox('Select a product', products)
+#"Select a product"
+selected_products_table=selected_categories_table[selected_categories_table['brand']==selected_brand]
+selected_products=selected_products_table['title'].unique()
+selected_products.sort()
+selected_product = st.selectbox('Select a product', selected_products)
+
+reviews_of_selected_products=selected_products_table[selected_products_table['title']==selected_product]
 
 "Show all reviews for selected product ordered by number of votes"
-
-reviews_by_product = df_all[(df_all['main_cat']==selected_category) & (df_all['brand']==selected_brand) & (df_all['title']==selected_product)]
-
-#astype(int) and replace "NonType" with 0
-
-reviews_by_product["vote"].fillna(0, inplace=True)
-
-reviews_by_product["vote"]=reviews_by_product["vote"].astype(int)
-
-p_reviews_ordered=reviews_by_product.sort_values('vote', ascending=False)
+reviews_of_selected_products["vote"].fillna(0, inplace=True) # replace NaN with 0
+reviews_of_selected_products["vote"]=reviews_of_selected_products["vote"].astype(int) # Treat vote as integer
+p_reviews_ordered=reviews_of_selected_products.sort_values('vote', ascending=False) # Sort by vote
 p_reviews_ordered
 
-reviews_list=p_reviews_ordered["reviewText"].to_list()
 
-# Select from list maz reviews
-"Select from list maz reviews"
+
+# Selecting a maximum number of reviews
+"Selecting a maximum number of reviews"
 
 max_number = 10 # just to test, can be changed
+
+reviews_list=p_reviews_ordered["reviewText"].to_list()
 
 if len(reviews_list) > max_number:
     max_reviews = reviews_list[:max_number]
