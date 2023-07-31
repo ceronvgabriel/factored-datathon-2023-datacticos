@@ -1,7 +1,7 @@
 #Select path to all data
-path_to_master_data='master_data/parquet/parquet/'
+path_to_master_data='../master_data/reviews_master_parquet/reviews_master_parquet/'
 #Select desired categories
-selected_categories=['All Electronics',"Computers","Cell Phones & Accessories","Cell Phones &amp; Accessories"]
+#selected_categories=['All Electronics',"Computers","Cell Phones & Accessories","Cell Phones &amp; Accessories"]
 
 
 import streamlit as st
@@ -13,15 +13,22 @@ st.title('Team Datacticos - Amazon Product Reviews')
 
 #category_file = pd.read_parquet("master_data/parquet/parquet/main_cat=Computers/", engine="pyarrow")
 
-#caching data loading so it only happens once
-@st.cache_data
+
+# needed to read the main_cat value, can be removed if the column is already in the dataset
+import os
+selected_categories = os.listdir('../master_data/reviews_master_parquet/reviews_master_parquet/') 
+selected_categories.remove('._SUCCESS.crc')
+selected_categories.remove('_SUCCESS')
+
+#caching data loading so it only happens once, changed cache_data with cache_resource as suggest documentation for large datasets
+@st.cache_resource
 def load_data():
     print("Loading Data")
     df_all=[]
     for category in selected_categories:
-
-        category_file = pd.read_parquet(f'{path_to_master_data}main_cat={category}/', engine="pyarrow")
-
+        print(f"Loading {category}")
+        category_file = pd.read_parquet(f'{path_to_master_data}{category}/', engine="pyarrow")
+        print(f"Loaded {category}")
         #Add category column, merging Cell Phones & Accessories and Cell Phones &amp; Accessories
         if category == "Cell Phones &amp; Accessories":
             category_file['main_cat'] = "Cell Phones & Accessories"
@@ -29,11 +36,17 @@ def load_data():
             category_file['main_cat'] = category
 
         df_all.append(category_file)
-
-    return pd.concat(df_all)
+    print("Finished loading data")
+    print("Concatenating data"  )
+    df_concat=pd.concat(df_all)
+    print("Finished concatenating data")
+    return df_concat
 
 
 df_all=load_data()
+print("Returned from load_data()")
+print("Displaying App")
+
 "Showing loaded data"
 st.write(df_all.head(5))
 
