@@ -44,6 +44,10 @@ def load_data():
 
 
 df_all=load_data()
+
+#Track loaded data in session state
+st.session_state.df_all=df_all
+
 print("Returned from load_data()")
 print("Displaying App")
 
