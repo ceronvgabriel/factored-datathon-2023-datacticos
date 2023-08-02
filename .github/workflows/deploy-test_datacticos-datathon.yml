@@ -60,4 +60,4 @@ jobs:
         with:
           app-name: 'datacticos-datathon'
           slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_25D1B7E974034DF48EDC375EE39CFC14 }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_BC3FED6652E645AD88D4F51CC154A11D }}
