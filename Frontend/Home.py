@@ -1,5 +1,5 @@
 #Select path to all data
-path_to_master_data='../master_data/reviews_master_parquet/reviews_master_parquet/'
+path_to_master_data='/home/sites/reviews_master_parquet/'
 #Select desired categories
 #selected_categories=['All Electronics',"Computers","Cell Phones & Accessories","Cell Phones &amp; Accessories"]
 
