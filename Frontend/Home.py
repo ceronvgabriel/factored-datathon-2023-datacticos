@@ -7,7 +7,10 @@ path_to_master_data='/home/sites/reviews_master_parquet/'
 import streamlit as st
 import pandas as pd
 import numpy as np
+import logging
 
+logging.basicConfig(filename='logs/app.log', level=logging.INFO)
+logging.info(f"App Started")
 
 st.title('Team Datacticos - Amazon Product Reviews')
 
@@ -24,11 +27,14 @@ selected_categories.remove('_SUCCESS')
 @st.cache_resource
 def load_data():
     print("Loading Data")
+    logging.info(f"Loading Data")
     df_all=[]
     for category in selected_categories:
         print(f"Loading {category}")
+        logging.info(f"Loading {category}")
         category_file = pd.read_parquet(f'{path_to_master_data}{category}/', engine="pyarrow")
         print(f"Loaded {category}")
+        logging.info(f"Loaded {category}")
         #Add category column, merging Cell Phones & Accessories and Cell Phones &amp; Accessories
         if category == "Cell Phones &amp; Accessories":
             category_file['main_cat'] = "Cell Phones & Accessories"
@@ -37,9 +43,12 @@ def load_data():
 
         df_all.append(category_file)
     print("Finished loading data")
+    logging.info(f"Finished loading data")
     print("Concatenating data"  )
+    logging.info(f"Concatenating data")
     df_concat=pd.concat(df_all)
     print("Finished concatenating data")
+    logging.info(f"Finished concatenating data")
     return df_concat
 
 
@@ -50,6 +59,7 @@ st.session_state.df_all=df_all
 
 print("Returned from load_data()")
 print("Displaying App")
+logging.info(f"Returned from load_data(), displaying App")
 
 "Showing loaded data"
 st.write(df_all.head(5))
