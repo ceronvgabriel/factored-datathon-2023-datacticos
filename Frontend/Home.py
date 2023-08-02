@@ -16,7 +16,7 @@ st.title('Team Datacticos - Amazon Product Reviews')
 
 # needed to read the main_cat value, can be removed if the column is already in the dataset
 import os
-selected_categories = os.listdir('../master_data/reviews_master_parquet/reviews_master_parquet/') 
+selected_categories = os.listdir(path_to_master_data) 
 selected_categories.remove('._SUCCESS.crc')
 selected_categories.remove('_SUCCESS')
 
