@@ -1,5 +1,5 @@
 #Select path to all data
-path_to_master_data='../master_data/reviews_master_parquet/reviews_master_parquet/'
+path_to_master_data='/home/sites/reviews_master_parquet/'
 #Select desired categories
 #selected_categories=['All Electronics',"Computers","Cell Phones & Accessories","Cell Phones &amp; Accessories"]
 
@@ -7,7 +7,12 @@ path_to_master_data='../master_data/reviews_master_parquet/reviews_master_parque
 import streamlit as st
 import pandas as pd
 import numpy as np
+import logging
 
+#Create file to log and append logs to it
+logging.basicConfig(filename='app.log', filemode='w')
+
+logging.info(f"App Started")
 
 st.title('Team Datacticos - Amazon Product Reviews')
 
@@ -16,7 +21,7 @@ st.title('Team Datacticos - Amazon Product Reviews')
 
 # needed to read the main_cat value, can be removed if the column is already in the dataset
 import os
-selected_categories = os.listdir('../master_data/reviews_master_parquet/reviews_master_parquet/') 
+selected_categories = os.listdir(path_to_master_data) 
 selected_categories.remove('._SUCCESS.crc')
 selected_categories.remove('_SUCCESS')
 
@@ -24,11 +29,14 @@ selected_categories.remove('_SUCCESS')
 @st.cache_resource
 def load_data():
     print("Loading Data")
+    logging.info(f"Loading Data")
     df_all=[]
     for category in selected_categories:
         print(f"Loading {category}")
+        logging.info(f"Loading {category}")
         category_file = pd.read_parquet(f'{path_to_master_data}{category}/', engine="pyarrow")
         print(f"Loaded {category}")
+        logging.info(f"Loaded {category}")
         #Add category column, merging Cell Phones & Accessories and Cell Phones &amp; Accessories
         if category == "Cell Phones &amp; Accessories":
             category_file['main_cat'] = "Cell Phones & Accessories"
@@ -37,9 +45,12 @@ def load_data():
 
         df_all.append(category_file)
     print("Finished loading data")
+    logging.info(f"Finished loading data")
     print("Concatenating data"  )
+    logging.info(f"Concatenating data")
     df_concat=pd.concat(df_all)
     print("Finished concatenating data")
+    logging.info(f"Finished concatenating data")
     return df_concat
 
 
@@ -50,6 +61,7 @@ st.session_state.df_all=df_all
 
 print("Returned from load_data()")
 print("Displaying App")
+logging.info(f"Returned from load_data(), displaying App")
 
 "Showing loaded data"
 st.write(df_all.head(5))
