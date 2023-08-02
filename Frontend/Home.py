@@ -9,7 +9,9 @@ import pandas as pd
 import numpy as np
 import logging
 
-logging.basicConfig(filename='logs/app.log', level=logging.INFO)
+#Create file to log and append logs to it
+logging.basicConfig(filename='app.log', filemode='w')
+
 logging.info(f"App Started")
 
 st.title('Team Datacticos - Amazon Product Reviews')
