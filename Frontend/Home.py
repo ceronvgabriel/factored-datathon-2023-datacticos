@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import logging
 import os
+from tqdm import tqdm
 
 # NLP Pkgs
 import matplotlib.pyplot as plt
@@ -14,8 +15,8 @@ openai.api_key = "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"
 
 
 #Select path to all data
-path_to_master_data='/home/sites/reviews_master_parquet/' # deployment path
-#path_to_master_data='./master_data/reviews_master_parquet/' # local path
+#path_to_master_data='/home/sites/reviews_master_parquet/' # deployment path
+path_to_master_data='/home/yhbedoya/Datathon/reviews_master_parquet/' # local path
 
 
 #Select desired categories or read all categories in the folder
@@ -37,31 +38,32 @@ logging.info(f"App Started")
 #Start app
 st.title('Team Datacticos - Amazon Product Reviews')
 
+@st.cache_resource
+def generate_brands_list(df):
+    print("Preparing brands")
+    logging.info(f"Preparing brands")
+
+    brands = df["brand"].unique()
+    brands = sorted(brands)
+    return brands
 
 #caching data loading so it only happens once, changed cache_data with cache_resource as suggest documentation for large datasets
-@st.cache_resource
-def load_data():
+#@st.cache_resource
+def load_data_by_category(selected_category):
     print("Loading Data")
     logging.info(f"Loading Data")
-    df_all=[]
-    for category in selected_categories:
-        print(f"Loading {category}")
-        logging.info(f"Loading {category}")
-        category_file = pd.read_parquet(f'{path_to_master_data}main_cat={category}/', engine="pyarrow")
-        print(f"Loaded {category}")
-        logging.info(f"Loaded {category}")
-        #Add category column, merging Cell Phones & Accessories and Cell Phones &amp; Accessories
-        if category == "Cell Phones &amp; Accessories":
-            category_file['main_cat'] = "Cell Phones & Accessories"
-        else:
-            category_file['main_cat'] = category
 
-        df_all.append(category_file)
+    category_file = pd.read_parquet(f'{path_to_master_data}main_cat={selected_category}/', engine="pyarrow")
+    print(f"Loaded {selected_category}")
+    logging.info(f"Loaded {selected_category}")
+    #Add category column, merging Cell Phones & Accessories and Cell Phones &amp; Accessories
+    if selected_category == "Cell Phones &amp; Accessories":
+        category_file['main_cat'] = "Cell Phones & Accessories"
+    else:
+        category_file['main_cat'] = selected_category
+
     print("Finished loading data")
     logging.info(f"Finished loading data")
-    print("Concatenating data"  )
-    logging.info(f"Concatenating data")
-    df_concat=pd.concat(df_all)
     print("Finished concatenating data")
     logging.info(f"Finished concatenating data")
 
@@ -69,9 +71,9 @@ def load_data():
     print("Filtering dataset")
     # Add the length of the review to the dataframe
     print("Adding reviewLen column")
-    df_concat["reviewLen"] = df_concat["reviewText"].apply(lambda x: len(str(x)))
+    category_file["reviewLen"] = category_file["reviewText"].apply(lambda x: len(str(x)))
     print("filtering max 3k ch length")
-    df = df_concat[df_concat["reviewLen"]<=3000]
+    df = category_file[category_file["reviewLen"]<=3000]
     return df
 
 # Load the pre-trained BART model and tokenizer
@@ -105,8 +107,8 @@ def generateSummaries(df):
     return summaries_list
 
 # Generate prompts for the OpenAI GPT-3 model
-def generatePrompt(df):
-    init = "Between the strings $%& and &%$ there are a number of product reviews. Generate a summary of the reviews, divide it into positives and negatives \n $%& \n"
+def generatePrompt(df, selected_product):
+    init = f"Between the strings $%& and &%$ there are a number of reviews for the product '{selected_product}'. Generate a summary of the reviews, divide it into positives and negatives \n $%& \n"
     reviews = df["reviewText"]
     middle = "\n".join(reviews.tolist())
     end = "\n &%$"
@@ -115,29 +117,14 @@ def generatePrompt(df):
     return prompt
 
 # Generate summaries using the OpenAI GPT-3 model
-def getProductInsights(df):
-    prompt = generatePrompt(df)
+def getProductInsights(df, selected_product):
+    prompt = generatePrompt(df, selected_product)
     output = openai.ChatCompletion.create(
     model="gpt-3.5-turbo",
     messages=[{"role":"user",
               "content":prompt}]
               )    
     return output["choices"][0]["message"]["content"]
-
-df_all=load_data()
-print("Returned from load_data()")
-print("Loading model")
-model, tokenizer, analyzer = load_model()
-print("Returned from load_model()")
-
-#Track loaded data in session state to be used in other pages
-st.session_state.df_all=df_all
-
-
-print("Displaying App")
-logging.info(f"Returned from load_data(), displaying App")
-
-st.write("Select a brand and a product to generate summaries of the most voted reviews and product insights")
 
 #Selecting a brand
 @st.cache_resource
@@ -147,24 +134,10 @@ def select_brand(df_all):
     brands = list(filter(lambda s: s.strip() != "", brands)) # remove empty strings
     return brands
 
-brands=select_brand(df_all)
-
-selected_brand = st.selectbox('Select a brand', brands)
-if selected_brand:
-    #"Select a product"
-    selected_products_table=df_all[df_all['brand']==selected_brand]
-    selected_products=selected_products_table['title'].unique()
-    selected_products.sort()
-    selected_product = st.selectbox('Select a product', selected_products)
-else:
-    selected_product = None
-
-#Max num of reviews to generate
-max_num_reviews=5
-
 @st.cache_resource
 def generate_summaries(selected_product):
     reviews_of_selected_products=selected_products_table[selected_products_table['title']==selected_product]
+    print(f"shape of reviews for product: {reviews_of_selected_products.shape}")
 
     # Apply the sentiment analysis function to each review
     sentiment_scores = reviews_of_selected_products["reviewText"].apply(get_sentiment_score)
@@ -181,20 +154,60 @@ def generate_summaries(selected_product):
     df3.sort_values("vote", inplace=True, ascending=False)
 
     df_neg = df3[df3["sentiment_bin"].isin(['Negative', 'Very Negative'])].iloc[:max_num_reviews]
-    st.write("### Summaries for most voted Negative reviews:")
+    st.write("### Summaries for most voted Negative reviews:",style="color:blue")
     with st.spinner('Generating summaries for most voted Negative reviews...'):
         gen_neg_summaries=generateSummaries(df_neg)
     if not gen_neg_summaries:
         st.write("No Negative reviews found")
 
     df_pos = df3[df3["sentiment_bin"].isin(['Positive'])].iloc[:max_num_reviews]
-    st.write("### Summaries for most voted Positive reviews:")
+    st.write("### Summaries for most voted Positive reviews:",style="color:blue")
     with st.spinner('Generating summaries for most voted Positive reviews...'):
         gen_pos_summaries=generateSummaries(df_pos)
     if not gen_pos_summaries:
         st.write("No Positive reviews found")
-    
 
+#df_all=load_data()
+#print("Returned from load_data()")
+print("Loading model")
+model, tokenizer, analyzer = load_model()
+print("Returned from load_model()")
+
+#Track loaded data in session state to be used in other pages
+
+
+
+#print("Displaying App")
+#logging.info(f"Returned from load_data(), displaying App")
+
+st.write("Select the category of interest")
+
+selected_category = st.selectbox('Select a Category', selected_categories)
+
+df_cat = load_data_by_category(selected_category)
+print(f"shape of category df: {df_cat.shape}")
+
+st.write("Select a brand and a product to generate summaries of the most voted reviews and product insights")
+
+brandsList = generate_brands_list(df_cat)
+
+selected_brand = st.selectbox('Select a brand', brandsList)
+print(f"selected_brand: {selected_brand}")
+if selected_brand:
+    #"Select a product"
+
+    selected_products_table=df_cat[df_cat["brand"]==selected_brand]
+    st.session_state.df_all=selected_products_table
+    selected_products=selected_products_table['title'].unique()
+    selected_products.sort()
+    print(f"Shape of products for brand df {selected_products.shape}")
+    selected_product = st.selectbox('Select a product', selected_products)
+else:
+    selected_product = None
+
+#Max num of reviews to generate
+max_num_reviews=5
+    
 st.write("## Generate Product Summaries from most voted reviews:")
 if st.button("Generate Product Summaries"):
     generate_summaries(selected_product)
@@ -207,6 +220,6 @@ if st.button("Generate Product Insights"):
 
     #Generate product insights using the OpenAI GPT-3 model
     with st.spinner('Generating product insights...'):
-        insights=getProductInsights(reviews_of_selected_products.iloc[:max_num_reviews])
+        insights=getProductInsights(reviews_of_selected_products.iloc[:max_num_reviews], selected_product)
     st.write(insights)
 
