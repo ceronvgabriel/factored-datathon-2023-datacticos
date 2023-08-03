@@ -201,9 +201,9 @@ generate_summaries(selected_product)
 if st.button("Generate Product Insights"):
     print("! Calling GPT-3 API")
 
-    # #Generate product insights using the OpenAI GPT-3 model
-    # with st.spinner('Generating product insights...'):
-    #     insights=getProductInsights(df3.iloc[:5])
-    # st.write("Product insights:")
-    # st.write(insights)
+    #Generate product insights using the OpenAI GPT-3 model
+    with st.spinner('Generating product insights...'):
+        insights=getProductInsights(df3.iloc[:5])
+    st.write("Product insights:")
+    st.write(insights)
 
