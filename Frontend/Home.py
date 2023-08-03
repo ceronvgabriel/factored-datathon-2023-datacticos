@@ -16,7 +16,8 @@ openai.api_key = "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"
 
 #Select path to all data
 #path_to_master_data='/home/sites/reviews_master_parquet/' # deployment path
-path_to_master_data='/home/yhbedoya/Datathon/reviews_master_parquet/' # local path
+#path_to_master_data='/home/yhbedoya/Datathon/reviews_master_parquet/' # local path
+path_to_master_data='./master_data/reviews_master_parquet/' # local path Gabriel
 
 
 #Select desired categories or read all categories in the folder
@@ -48,7 +49,7 @@ def generate_brands_list(df):
     return brands
 
 #caching data loading so it only happens once, changed cache_data with cache_resource as suggest documentation for large datasets
-#@st.cache_resource
+@st.cache_resource
 def load_data_by_category(selected_category):
     print("Loading Data")
     logging.info(f"Loading Data")
