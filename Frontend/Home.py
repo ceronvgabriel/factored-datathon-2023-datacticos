@@ -14,8 +14,8 @@ openai.api_key = "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"
 
 
 #Select path to all data
-path_to_master_data='/home/sites/reviews_master_parquet/' # deployment path
-#path_to_master_data='./master_data/reviews_master_parquet/' # local path
+#path_to_master_data='/home/sites/reviews_master_parquet/' # deployment path
+path_to_master_data='./master_data/reviews_master_parquet/' # local path
 
 
 #Select desired categories or read all categories in the folder
@@ -64,7 +64,15 @@ def load_data():
     df_concat=pd.concat(df_all)
     print("Finished concatenating data")
     logging.info(f"Finished concatenating data")
-    return df_concat
+
+    #Filtering dataset
+    print("Filtering dataset")
+    # Add the length of the review to the dataframe
+    print("Adding reviewLen column")
+    df_concat["reviewLen"] = df_concat["reviewText"].apply(lambda x: len(str(x)))
+    print("filtering max 3k ch length")
+    df = df_concat[df_concat["reviewLen"]<=3000]
+    return df
 
 # Load the pre-trained BART model and tokenizer
 @st.cache_resource
@@ -93,6 +101,7 @@ def generateSummaries(df):
         # Decode and print the summary
         summary = tokenizer.decode(summary_ids[0], skip_special_tokens=True)
         summaries_list.append(summary)
+        st.write(f"{i+1} - {summary}")
     return summaries_list
 
 # Generate prompts for the OpenAI GPT-3 model
@@ -128,21 +137,7 @@ st.session_state.df_all=df_all
 print("Displaying App")
 logging.info(f"Returned from load_data(), displaying App")
 
-"Showing loaded data"
 st.write("Select a brand and a product to generate summaries of the most voted reviews and product insights")
-
-#Filtering the dataset
-@st.cache_resource
-def filter_dataset(df):
-    # Add the length of the review to the dataframe
-    print("Adding reviewLen column")
-    df["reviewLen"] = df["reviewText"].apply(lambda x: len(str(x)))
-    print("filtering max 3k ch length")
-    df = df[df["reviewLen"]<=3000]
-    return df
-
-
-df_all=filter_dataset(df_all)
 
 #Selecting a brand
 @st.cache_resource
@@ -164,9 +159,11 @@ if selected_brand:
 else:
     selected_product = None
 
+#Max num of reviews to generate
+max_num_reviews=5
+
 @st.cache_resource
 def generate_summaries(selected_product):
-    print("Running once")
     reviews_of_selected_products=selected_products_table[selected_products_table['title']==selected_product]
 
     # Apply the sentiment analysis function to each review
@@ -183,27 +180,33 @@ def generate_summaries(selected_product):
     #Sort by number of votes
     df3.sort_values("vote", inplace=True, ascending=False)
 
-    df_neg = df3[df3["sentiment_bin"].isin(['Negative', 'Very Negative'])].iloc[:5]
+    df_neg = df3[df3["sentiment_bin"].isin(['Negative', 'Very Negative'])].iloc[:max_num_reviews]
+    st.write("### Summaries for most voted Negative reviews:",style="color:blue")
     with st.spinner('Generating summaries for most voted Negative reviews...'):
         gen_neg_summaries=generateSummaries(df_neg)
-    st.write("Summaries for most voted Negative reviews:")
-    st.write(gen_neg_summaries)
+    if not gen_neg_summaries:
+        st.write("No Negative reviews found")
 
-    df_pos = df3[df3["sentiment_bin"].isin(['Positive'])].iloc[:5]
-
+    df_pos = df3[df3["sentiment_bin"].isin(['Positive'])].iloc[:max_num_reviews]
+    st.write("### Summaries for most voted Positive reviews:",style="color:blue")
     with st.spinner('Generating summaries for most voted Positive reviews...'):
         gen_pos_summaries=generateSummaries(df_pos)
-    st.write("Summaries for most voted Positive reviews:")
-    st.write(gen_pos_summaries)
+    if not gen_pos_summaries:
+        st.write("No Positive reviews found")
+    
 
-generate_summaries(selected_product)
+st.write("## Generate Product Summaries from most voted reviews:")
+if st.button("Generate Product Summaries"):
+    generate_summaries(selected_product)
 
+st.write("## Generate Product Insights from most voted reviews:")
 if st.button("Generate Product Insights"):
+    reviews_of_selected_products=selected_products_table[selected_products_table['title']==selected_product]
+    reviews_of_selected_products.sort_values("vote", inplace=True, ascending=False)
     print("! Calling GPT-3 API")
 
     #Generate product insights using the OpenAI GPT-3 model
     with st.spinner('Generating product insights...'):
-        insights=getProductInsights(df3.iloc[:5])
-    st.write("Product insights:")
+        insights=getProductInsights(reviews_of_selected_products.iloc[:max_num_reviews])
     st.write(insights)
 
