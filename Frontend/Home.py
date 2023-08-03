@@ -14,8 +14,8 @@ openai.api_key = "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"
 
 
 #Select path to all data
-#path_to_master_data='/home/sites/reviews_master_parquet/' # deployment path
-path_to_master_data='./master_data/reviews_master_parquet/' # local path
+path_to_master_data='/home/sites/reviews_master_parquet/' # deployment path
+#path_to_master_data='./master_data/reviews_master_parquet/' # local path
 
 
 #Select desired categories or read all categories in the folder
@@ -181,14 +181,14 @@ def generate_summaries(selected_product):
     df3.sort_values("vote", inplace=True, ascending=False)
 
     df_neg = df3[df3["sentiment_bin"].isin(['Negative', 'Very Negative'])].iloc[:max_num_reviews]
-    st.write("### Summaries for most voted Negative reviews:",style="color:blue")
+    st.write("### Summaries for most voted Negative reviews:")
     with st.spinner('Generating summaries for most voted Negative reviews...'):
         gen_neg_summaries=generateSummaries(df_neg)
     if not gen_neg_summaries:
         st.write("No Negative reviews found")
 
     df_pos = df3[df3["sentiment_bin"].isin(['Positive'])].iloc[:max_num_reviews]
-    st.write("### Summaries for most voted Positive reviews:",style="color:blue")
+    st.write("### Summaries for most voted Positive reviews:")
     with st.spinner('Generating summaries for most voted Positive reviews...'):
         gen_pos_summaries=generateSummaries(df_pos)
     if not gen_pos_summaries:
