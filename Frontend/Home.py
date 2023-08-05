@@ -3,7 +3,6 @@ import pandas as pd
 import numpy as np
 import logging
 import os
-from tqdm import tqdm
 
 # NLP Pkgs
 import matplotlib.pyplot as plt
@@ -16,8 +15,8 @@ openai.api_key = "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"
 
 #Select path to all data
 #path_to_master_data='/home/sites/reviews_master_parquet/' # deployment path
-path_to_master_data='/home/yhbedoya/Datathon/reviews_master_parquet/' # local path
-#path_to_master_data='./master_data/reviews_master_parquet/' # local path Gabriel
+#path_to_master_data='/home/yhbedoya/Datathon/reviews_master_parquet/' # local path
+path_to_master_data='./master_data/reviews_master_parquet/' # local path Gabriel
 
 
 #Select desired categories or read all categories in the folder
