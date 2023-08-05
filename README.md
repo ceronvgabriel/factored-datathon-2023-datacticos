@@ -12,7 +12,7 @@ This e2e product is a versatile analytical tool designed to evaluate and get ins
 
 ## Features 
 
-- **Consider historical and streaming timeview reviews.**
+- **Check customer reviews in historical and streaming timeview.**
 - **Automatic summarization of good or bad reviews.**
 - **Lifetime cycle of any available product.** 
 - **Compare your products with other possible competitors in within industry**
