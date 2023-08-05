@@ -1,0 +1,4 @@
+glob2==0.7
+azure-eventhub==5.11.3
+findspark==2.0.1
+pyarrow==12.0.1

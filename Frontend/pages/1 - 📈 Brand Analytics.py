@@ -86,10 +86,9 @@ if selected_brand:
     # st.bar_chart(count_categories)
 
     # st.write(df_brand.head(5))
-    st.divider()
     # Total products
     st.write(f"## Brand products: :blue[{df_brand['asin'].nunique()}]")
-    "Number of products with at least 5 reviews that your brand has in Amazon"
+    "Number of products with at least 5 reviews and helpful votes that your brand has had in Amazon"
     #Total product reviews
     st.write(f"## Brand total product reviews: :blue[{df_brand.shape[0]}]")
     "Number of reviews for those products"
@@ -136,8 +135,6 @@ if selected_brand:
     st.write("### :red[Bad reviews percentage:]")
     st.write(f"{bad_percentage*100:.2f}%")
 
-    st.divider()
-
     # st.write("## Product Popoularity")
     # top_number=5
     # f"Which products are the most and least reviewed? (Showing the top and last {top_number} products)"
@@ -168,13 +165,15 @@ if selected_brand:
 
     st.write("## Product Performance KPI")
     "This KPI measures the performance of your products, you can take decisions as increasing the production and marketing of best products, or remove products with bad performance or improve them."
+    "Best products are the ones with 3 or more overall rating and more votes"
+    "Not so good products are the ones with less than 3 overall rating and more votes"
     years=df_brand['year'].unique()
     # Generate slider only with years with more than 1 review
     if len(years)>1:
         selected_brand_year_2 = st.slider('Select the year', min_value=years.min(), max_value=years.max(), value=years.max())
     else:
         selected_brand_year_2=years[0]
-        st.write(f"Year: {selected_brand_year_2}")
+        st.write(f"### Year: {selected_brand_year_2}")
     #Filter for selected year
     df_brand_year_2=df_brand[df_brand['year']==selected_brand_year_2]
     #st.write(df_brand_year_2.head(5))
@@ -195,13 +194,11 @@ if selected_brand:
     bad_p_sub=bad_p_sub.reset_index()
     bad_p_sub.columns=["PID","Product","sum(votes)","count(reviews)"]
     st.write("### :green[Best products:]")
-    "Best products are the ones with 3 or more overall rating and more votes"
+    
     st.table(good_p_sub[:5])
-    st.write("### :red[Products that need atention:]")
-    "Not so good products are the ones with less than 3 overall rating and more votes"
+    st.write("### :red[Not so good products:]")
+    
     st.table(bad_p_sub[:5])
-
-    st.divider()
 
     
     
@@ -257,7 +254,6 @@ if selected_brand:
     # Analytics by product:
     st.write("# Brand products:")
     st.write(f"### Select a product to see analytics and get insights about it; Selected brand: :blue[{selected_brand}]")
-    "(To get a deeper understanding of the product reviews refer to the main page Home)"
     # Select a product:
     products=df_brand['title'].unique()
     products.sort()
@@ -266,10 +262,24 @@ if selected_brand:
 
     st.write(f"### Number of product reviews: {df_brand_product.shape[0]}")
 
-    st.divider()
+    st.write("## Product customer satisfaction:")
+
+    #Filter by overall rating
+    bad_products=df_brand_product[df_brand_product['overall']<3]
+    good_products=df_brand_product[df_brand_product['overall']>=3]
+    #Calculate the percentage of bad reviews
+    bad_percentage=bad_products.shape[0]/(bad_products.shape[0]+good_products.shape[0])
+    st.write(f"#### Good product reviews percentage: :green[{100-bad_percentage*100:.2f}%]")
+    st.write(f"#### Bad product reviews percentage: :red[{bad_percentage*100:.2f}%]")
+    #Bar chart for customer satisfaction
+    fig=px.bar(x=["Good","Bad"], y=[100-bad_percentage*100,bad_percentage*100], color_discrete_map={'Good': 'green', 'Bad': 'red'} , labels={"x": "Reviews", "y": "Percentage"})
+    
+    st.plotly_chart(fig)
+    
+    # Line chart for overall rating by year
 
     st.write("## Product rating in time:")
-    "Here you can see the rating of the product in time, it can be used to measure the quality of the product get a better understanding of its customer satisfaction"
+    "Here you can see the average rating of the product in time, it can be used to measure the quality of the product get a better understanding of its customer satisfaction"
 
     df_brand_product_year=df_brand_product[["year","overall"]].groupby(['year']).mean()
     fig=px.line(df_brand_product_year["overall"], markers=True)
@@ -281,7 +291,7 @@ if selected_brand:
     st.plotly_chart(fig)
 
     st.write("## Sentiment Analysis of product reviews:")
-    "Here you can have a deeper understanding of the product reviews sentiment"
+    "Here you can have a better understanding of the product reviews sentiment, classified in Very Positive, Neutral, Negative and Very Negative"
 
     from nltk.sentiment import SentimentIntensityAnalyzer
     import nltk
@@ -320,7 +330,7 @@ if selected_brand:
 
     # Create a wordcloud of the product reviews:
     st.write("## Product reviews wordcloud:")
-    "See the most common words in the reviews of your product, it can be used to get a better understanding of your customer needs and their opinions"
+    "See the most common words in the reviews of your product, it is used to see common topics and understand your customer opinions"
     @st.cache_data
     def gen_wordcloud(df_brand_product):
         wordcloud = WordCloud(width = 800, height = 800, 
