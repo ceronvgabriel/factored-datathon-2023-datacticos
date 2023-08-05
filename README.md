@@ -8,7 +8,7 @@
 
 ## Description 
 
-Here, you find a data solution to enhace customer satisfaction based on their positive/negative review patterns.
+This analytical product is a versatile task management tool designed to evaluate and get insight from customer reviews, Efforlessly organize data throught categories (e.g. All Electronics), set relevant indicators, and allow brands to know how to take action and boost their engagement with customers.
 
 Data in Batch: 80% 
 
