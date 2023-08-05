@@ -8,8 +8,10 @@
 
 ## Description 
 
-Here, you find a data solution to enhace customer satisfaction based on their positive/negative review patterns.\n
+Here, you find a data solution to enhace customer satisfaction based on their positive/negative review patterns.
+
 Data in Batch: 80% 
+
 Data in Streaming: 20% 
 
 ## Features 
