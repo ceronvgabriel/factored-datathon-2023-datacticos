@@ -1,4 +1,4 @@
-# Project name: **factored-datathon-2023-datacticos**
+# Project name: *factored-datathon-2023-datacticos*
 
 ## Table of Contents 
 - [Description](#description)
