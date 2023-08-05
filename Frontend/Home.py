@@ -91,6 +91,7 @@ def get_sentiment_score(text):
     text = str(text)
     return analyzer.polarity_scores(text)['compound']
 
+
 # Generate summaries using the BART model
 def generateSummaries(df):
     summaries_list = []
