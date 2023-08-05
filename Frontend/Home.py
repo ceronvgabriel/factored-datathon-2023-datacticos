@@ -99,12 +99,16 @@ def generateSummaries(df):
     summaries_list = []
     for i in range(df.shape[0]):
         review = df.iloc[i]["reviewText"]
-        # Tokenize the review and perform the summarization
-        inputs = tokenizer.encode("summarize: " + review, return_tensors="pt", max_length=1024, truncation=True)
-        summary_ids = model.generate(inputs, max_length=70, min_length=50, length_penalty=2.0, num_beams=4, early_stopping=True)
+        if len(review.split(" "))<70:
+            summaries_list.append(review)
+            summary = review
+        else:
+            # Tokenize the review and perform the summarization
+            inputs = tokenizer.encode("summarize: " + review, return_tensors="pt", max_length=1024, truncation=True)
+            summary_ids = model.generate(inputs, max_length=70, min_length=50, length_penalty=2.0, num_beams=4, early_stopping=True)
 
-        # Decode and print the summary
-        summary = tokenizer.decode(summary_ids[0], skip_special_tokens=True)
+            # Decode and print the summary
+            summary = tokenizer.decode(summary_ids[0], skip_special_tokens=True)
         summaries_list.append(summary)
         st.write(f"{i+1} - {summary}")
     return summaries_list
@@ -146,7 +150,7 @@ def select_brand(df_all):
     return brands
 
 @st.cache_resource
-def generate_summaries(selected_product):
+def generate_summaries_section(selected_product):
     reviews_of_selected_products=selected_products_table[selected_products_table['title']==selected_product]
     print(f"shape of reviews for product: {reviews_of_selected_products.shape}")
 
@@ -259,5 +263,5 @@ if st.button("Generate Product Insights") or st.session_state.click_insights:
 st.write("## Generate Product Summaries from most voted reviews:")
 "#### Here you will get summaries of the most voted positive and negative reviews for the product"
 if st.button("Generate Product Summaries") or st.session_state.click_summaries:
-    generate_summaries(selected_product)
+    generate_summaries_section(selected_product)
     st.session_state.click_summaries = True
