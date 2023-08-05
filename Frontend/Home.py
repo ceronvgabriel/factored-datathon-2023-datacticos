@@ -16,8 +16,8 @@ openai.api_key = "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"
 
 #Select path to all data
 #path_to_master_data='/home/sites/reviews_master_parquet/' # deployment path
-#path_to_master_data='/home/yhbedoya/Datathon/reviews_master_parquet/' # local path
-path_to_master_data='./master_data/reviews_master_parquet/' # local path Gabriel
+path_to_master_data='/home/yhbedoya/Datathon/reviews_master_parquet/' # local path
+#path_to_master_data='./master_data/reviews_master_parquet/' # local path Gabriel
 
 
 #Select desired categories or read all categories in the folder
@@ -77,7 +77,7 @@ def load_data_by_category(selected_category):
     df = category_file[category_file["reviewLen"]<=3000]
     return df
 
-# Load the pre-trained BART model and tokenizer
+# Load the pre-trained BART model and tokenizer, and the sentiment analyzer
 @st.cache_resource
 def load_model():
     model_name = "facebook/bart-large-cnn"
@@ -109,7 +109,7 @@ def generateSummaries(df):
 
 # Generate prompts for the OpenAI GPT-3 model
 def generatePrompt(df, selected_product):
-    init = f"Between the strings $%& and &%$ there are a number of reviews for the product '{selected_product}'. Generate a summary of the reviews, divide it into positives and negatives \n $%& \n"
+    init = f"Between the strings $%& and &%$ there are a number of reviews for the product '{selected_product}'. Generate a list of the main characteristics of the product mentioned in the review, divide it into positives and negatives. Finally generate a set of ideas to improve the product based on your knowledge of simmilar amazon products. display the result as Positive: ... \n Negative: ... \n Improvement oportunities: ...  \n $%& \n"
     reviews = df["reviewText"]
     middle = "\n".join(reviews.tolist())
     end = "\n &%$"
@@ -118,14 +118,22 @@ def generatePrompt(df, selected_product):
     return prompt
 
 # Generate summaries using the OpenAI GPT-3 model
+@st.cache_resource
 def getProductInsights(df, selected_product):
+
+    reviews_of_selected_products=selected_products_table[selected_products_table['title']==selected_product]
+    reviews_of_selected_products.sort_values("vote", inplace=True, ascending=False)
+    df = reviews_of_selected_products.iloc[:max_num_reviews]
+    print("! Calling GPT-3 API")
+
     prompt = generatePrompt(df, selected_product)
     output = openai.ChatCompletion.create(
     model="gpt-3.5-turbo",
     messages=[{"role":"user",
               "content":prompt}]
               )    
-    return output["choices"][0]["message"]["content"]
+    insights = output["choices"][0]["message"]["content"]
+    st.write(insights)
 
 #Selecting a brand
 @st.cache_resource
@@ -147,14 +155,14 @@ def generate_summaries(selected_product):
     df3 = pd.concat([reviews_of_selected_products, sentiment_scores.rename('sentiment_score')], axis=1)
 
     # Divide sentiment scores into four bins and count occurrences in each bin
-    bins = [-1, -0.5, 0, 0.5, 1]
-    bin_labels = ['Very Negative', 'Negative', 'Neutral', 'Positive']
+    bins = [-1, 0, 1]
+    bin_labels = ['Negative','Positive']
     df3['sentiment_bin'] = pd.cut(df3['sentiment_score'], bins=bins, labels=bin_labels)
 
     #Sort by number of votes
     df3.sort_values("vote", inplace=True, ascending=False)
 
-    df_neg = df3[df3["sentiment_bin"].isin(['Negative', 'Very Negative'])].iloc[:max_num_reviews]
+    df_neg = df3[df3["sentiment_bin"].isin(['Negative'])].iloc[:max_num_reviews]
     st.write("### Summaries for most voted Negative reviews:",style="color:blue")
     with st.spinner('Generating summaries for most voted Negative reviews...'):
         gen_neg_summaries=generateSummaries(df_neg)
@@ -174,16 +182,34 @@ print("Loading model")
 model, tokenizer, analyzer = load_model()
 print("Returned from load_model()")
 
-#Track loaded data in session state to be used in other pages
+#Max num of reviews to generate
+max_num_reviews=5
 
+# Initialize session_state variables
+if 'click_summaries' not in st.session_state:
+    st.session_state.click_summaries = False
 
+if 'click_insights' not in st.session_state:
+    st.session_state.click_insights = False
 
-#print("Displaying App")
-#logging.info(f"Returned from load_data(), displaying App")
+if 'selected_category' not in st.session_state:
+    st.session_state.selected_category = None
+
+if 'selected_brand' not in st.session_state:
+    st.session_state.selected_brand = None
+
+if 'selected_product' not in st.session_state:
+    st.session_state.selected_product = None
+
 
 st.write("Select the category of interest")
 
 selected_category = st.selectbox('Select a Category', selected_categories)
+if selected_category != st.session_state.selected_category:
+    st.session_state.selected_category  = selected_category
+    st.session_state.click_summaries = False
+    st.session_state.click_insights = False
+
 
 df_cat = load_data_by_category(selected_category)
 print(f"shape of category df: {df_cat.shape}")
@@ -194,8 +220,13 @@ brandsList = generate_brands_list(df_cat)
 
 selected_brand = st.selectbox('Select a brand', brandsList)
 print(f"selected_brand: {selected_brand}")
+
 if selected_brand:
     #"Select a product"
+    if selected_brand != st.session_state.selected_brand:
+        st.session_state.selected_brand = selected_brand
+        st.session_state.click_summaries = False
+        st.session_state.click_insights = False
 
     selected_products_table=df_cat[df_cat["brand"]==selected_brand]
     st.session_state.df_all=selected_products_table
@@ -203,24 +234,22 @@ if selected_brand:
     selected_products.sort()
     print(f"Shape of products for brand df {selected_products.shape}")
     selected_product = st.selectbox('Select a product', selected_products)
+    if selected_product != st.session_state.selected_product:
+        st.session_state.selected_product = selected_product
+        st.session_state.click_summaries = False
+        st.session_state.click_insights = False
+
 else:
     selected_product = None
 
-#Max num of reviews to generate
-max_num_reviews=5
-    
-st.write("## Generate Product Summaries from most voted reviews:")
-if st.button("Generate Product Summaries"):
-    generate_summaries(selected_product)
-
 st.write("## Generate Product Insights from most voted reviews:")
-if st.button("Generate Product Insights"):
-    reviews_of_selected_products=selected_products_table[selected_products_table['title']==selected_product]
-    reviews_of_selected_products.sort_values("vote", inplace=True, ascending=False)
-    print("! Calling GPT-3 API")
-
+if st.button("Generate Product Insights") or st.session_state.click_insights:
     #Generate product insights using the OpenAI GPT-3 model
     with st.spinner('Generating product insights...'):
-        insights=getProductInsights(reviews_of_selected_products.iloc[:max_num_reviews], selected_product)
-    st.write(insights)
+        getProductInsights(selected_products_table, selected_product)
+        st.session_state.click_insights = True
 
+st.write("## Generate Product Summaries from most voted reviews:")
+if st.button("Generate Product Summaries") or st.session_state.click_summaries:
+    generate_summaries(selected_product)
+    st.session_state.click_summaries = True
