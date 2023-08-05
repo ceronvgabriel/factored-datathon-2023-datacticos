@@ -8,5 +8,22 @@ factored-datathon-2023-datacticos
 - [Screenshots](#screenshots)
 - [Usage](#usage)
 
-#### Here, you can find a data solution to enhace customer satisfaction based on their positive/negative review patterns.
-#### Data: 80% Batch 20% Streaming 
+## Description 
+
+Here, you find a data solution to enhace customer satisfaction based on their positive/negative review patterns.
+Data in Bath: 80% 
+Data in Streaming: 20% 
+
+## Features 
+
+List the key features or functionalities of the project
+
+## Screenshots 
+
+Include screenshots or images that showcase the project in action 
+
+## Usage
+
+Instructions on how to use the project. You can configurations, etc.
+
+---
