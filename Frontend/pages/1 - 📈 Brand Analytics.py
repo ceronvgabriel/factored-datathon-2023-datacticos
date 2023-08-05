@@ -5,6 +5,8 @@ import plotly.express as px
 import numpy as np
 import os
 import logging
+import openai
+openai.api_key = "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"
 
 logging.basicConfig(filename='app.log', filemode='w')
 logging.info(f"App Started")
@@ -63,6 +65,36 @@ def load_data_by_category(selected_category):
     print("filtering max 3k ch length")
     df = category_file[category_file["reviewLen"]<=3000]
     return df
+
+# Generate prompts for the OpenAI GPT-3 model
+def gen_prompt_satisfaction(df, selected_product):
+    init = f"Between the strings $%& and &%$ there are a number of reviews for the product '{selected_product}'. Generate the main product features that affect the customer satisfaction \n $%& \n"
+    reviews = df["reviewText"]
+    middle = "\n".join(reviews.tolist())
+    end = "\n &%$"
+
+    prompt = init + middle + end
+    return prompt
+
+max_num_reviews=5
+
+#Funtion to get product satisfaction insights
+@st.cache_resource
+def get_prod_satisfaction(df, selected_product):
+
+    reviews_of_selected_products=df[df['title']==selected_product]
+    reviews_of_selected_products.sort_values("vote", inplace=True, ascending=False)
+    df = reviews_of_selected_products.iloc[:max_num_reviews]
+    print("! Calling GPT-3 API")
+
+    prompt = gen_prompt_satisfaction(df, selected_product)
+    output = openai.ChatCompletion.create(
+    model="gpt-3.5-turbo",
+    messages=[{"role":"user",
+              "content":prompt}]
+              )    
+    insights = output["choices"][0]["message"]["content"]
+    st.write(insights)
 
 st.title("Brand Analytics")
 st.write("#### In this page you can find analytics and insights about your brand and its products, you can use this to take informed decisions and increase your sales, customer satisfaction and brand awareness.")
@@ -164,7 +196,7 @@ if selected_brand:
     # st.divider()
 
     st.write("## Product Performance KPI")
-    "This KPI measures the performance of your products, you can take decisions as increasing the production and marketing of best products, or remove products with bad performance or improve them."
+    "Which products are well accepted and which need improvement? This KPI measures the performance of your products, you can take decisions as increasing the production and marketing of best products, or remove products with bad performance or improve them."
     "Best products are the ones with 3 or more overall rating and more votes"
     "Not so good products are the ones with less than 3 overall rating and more votes"
     years=df_brand['year'].unique()
@@ -177,28 +209,28 @@ if selected_brand:
     #Filter for selected year
     df_brand_year_2=df_brand[df_brand['year']==selected_brand_year_2]
     #st.write(df_brand_year_2.head(5))
-    #Filter by overall rating
-    bad_products=df_brand_year_2[df_brand_year_2['overall']<3]
-    good_products=df_brand_year_2[df_brand_year_2['overall']>=3]
-    good_p_sub=good_products[["asin","title","vote"]]
-    good_p_sub=good_p_sub.groupby(['asin',"title"]).sum()
-    good_p_sub["count_reviews"]=good_products.groupby(['asin',"title"]).count()["reviewerID"]
-    good_p_sub.sort_values("vote", inplace=True, ascending=False)
-    good_p_sub=good_p_sub.reset_index()
-    good_p_sub.columns=["PID","Product","sum(votes)","count(reviews)"]
+    #Group by product and sum votes
+    df_group_products=df_brand_year_2[["asin","title","overall"]]
+    df_group_products=df_group_products.groupby(['asin',"title"]).mean()
+    df_group_products["sum(votes)"]=df_brand_year_2[["asin","title","vote"]].groupby(['asin',"title"]).sum()["vote"]
 
-    bad_p_sub=bad_products[["asin","title","vote"]]
-    bad_p_sub=bad_p_sub.groupby(['asin',"title"]).sum()
-    bad_p_sub["count_reviews"]=bad_products.groupby(['asin',"title"]).count()["reviewerID"]
-    bad_p_sub.sort_values("vote", inplace=True, ascending=False)
-    bad_p_sub=bad_p_sub.reset_index()
-    bad_p_sub.columns=["PID","Product","sum(votes)","count(reviews)"]
+    #Filter by overall rating
+    bad_products=df_group_products[df_group_products['overall']<3]
+    good_products=df_group_products[df_group_products['overall']>=3]
+
+    good_products.sort_values("sum(votes)", inplace=True, ascending=False)
+    good_products=good_products.reset_index()
+    good_products.columns=["PID","Product","mean(overall)","sum(votes)"]
+
+    bad_products.sort_values("sum(votes)", inplace=True, ascending=False)
+    bad_products=bad_products.reset_index()
+    bad_products.columns=["PID","Product","mean(overall)","sum(votes)"]
     st.write("### :green[Best products:]")
     
-    st.table(good_p_sub[:5])
+    st.table(good_products[:5])
     st.write("### :red[Not so good products:]")
     
-    st.table(bad_p_sub[:5])
+    st.table(bad_products[:5])
 
     
     
@@ -272,9 +304,18 @@ if selected_brand:
     st.write(f"#### Good product reviews percentage: :green[{100-bad_percentage*100:.2f}%]")
     st.write(f"#### Bad product reviews percentage: :red[{bad_percentage*100:.2f}%]")
     #Bar chart for customer satisfaction
-    fig=px.bar(x=["Good","Bad"], y=[100-bad_percentage*100,bad_percentage*100], color_discrete_map={'Good': 'green', 'Bad': 'red'} , labels={"x": "Reviews", "y": "Percentage"})
+    # fig=px.bar(x=["Good","Bad"], y=[100-bad_percentage*100,bad_percentage*100], color_discrete_map={'Good': 'green', 'Bad': 'red'} , labels={"x": "Reviews", "y": "Percentage"})
     
-    st.plotly_chart(fig)
+    # st.plotly_chart(fig)
+
+    st.write("## What are the main product features that impact on customer satisfaction?")
+    "See the main features that affect the customer satisfaction, based on most voted reviews"
+
+    if st.button("Generate Satisfaction Insights"):
+    #Generate product insights using the OpenAI GPT-3 model
+        with st.spinner('Generating Satisfaction insights...'):
+            get_prod_satisfaction(df_brand_product, selected_product)
+
     
     # Line chart for overall rating by year
 
