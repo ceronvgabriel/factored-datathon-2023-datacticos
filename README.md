@@ -8,8 +8,8 @@
 
 ## Description 
 
-Here, you find a data solution to enhace customer satisfaction based on their positive/negative review patterns.
-Data in Bath: 80% 
+Here, you find a data solution to enhace customer satisfaction based on their positive/negative review patterns.\n
+Data in Batch: 80% 
 Data in Streaming: 20% 
 
 ## Features 
