@@ -109,7 +109,7 @@ def generateSummaries(df):
 
 # Generate prompts for the OpenAI GPT-3 model
 def generatePrompt(df, selected_product):
-    init = f"Between the strings $%& and &%$ there are a number of reviews for the product '{selected_product}'. Generate a list of the main characteristics of the product mentioned in the review, divide it into positives and negatives. Finally generate a set of ideas to improve the product based on your knowledge of simmilar amazon products. display the result as Positive: ... \n Negative: ... \n Oportunities: ...  \n $%& \n"
+    init = f"Between the strings $%& and &%$ there are a number of reviews for the product '{selected_product}'. Generate a list of the main characteristics of the product mentioned in the review, divide it into positives and negatives. Finally generate a set of ideas to improve the product based on your knowledge of simmilar amazon products. display the result as Positive: ... \n Negative: ... \n Improvement oportunities: ...  \n $%& \n"
     reviews = df["reviewText"]
     middle = "\n".join(reviews.tolist())
     end = "\n &%$"
@@ -242,15 +242,14 @@ if selected_brand:
 else:
     selected_product = None
 
-
-st.write("## Generate Product Summaries from most voted reviews:")
-if st.button("Generate Product Summaries") or st.session_state.click_summaries:
-    generate_summaries(selected_product)
-    st.session_state.click_summaries = True
-
 st.write("## Generate Product Insights from most voted reviews:")
 if st.button("Generate Product Insights") or st.session_state.click_insights:
     #Generate product insights using the OpenAI GPT-3 model
     with st.spinner('Generating product insights...'):
         getProductInsights(selected_products_table, selected_product)
         st.session_state.click_insights = True
+
+st.write("## Generate Product Summaries from most voted reviews:")
+if st.button("Generate Product Summaries") or st.session_state.click_summaries:
+    generate_summaries(selected_product)
+    st.session_state.click_summaries = True
