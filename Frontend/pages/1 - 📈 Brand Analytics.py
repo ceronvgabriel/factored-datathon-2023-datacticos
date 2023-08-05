@@ -196,7 +196,7 @@ if selected_brand:
     # st.divider()
 
     st.write("## Product Performance KPI")
-    "This KPI measures the performance of your products, you can take decisions as increasing the production and marketing of best products, or remove products with bad performance or improve them."
+    "Which products are well accepted and which need improvement? This KPI measures the performance of your products, you can take decisions as increasing the production and marketing of best products, or remove products with bad performance or improve them."
     "Best products are the ones with 3 or more overall rating and more votes"
     "Not so good products are the ones with less than 3 overall rating and more votes"
     years=df_brand['year'].unique()
@@ -304,11 +304,12 @@ if selected_brand:
     st.write(f"#### Good product reviews percentage: :green[{100-bad_percentage*100:.2f}%]")
     st.write(f"#### Bad product reviews percentage: :red[{bad_percentage*100:.2f}%]")
     #Bar chart for customer satisfaction
-    fig=px.bar(x=["Good","Bad"], y=[100-bad_percentage*100,bad_percentage*100], color_discrete_map={'Good': 'green', 'Bad': 'red'} , labels={"x": "Reviews", "y": "Percentage"})
+    # fig=px.bar(x=["Good","Bad"], y=[100-bad_percentage*100,bad_percentage*100], color_discrete_map={'Good': 'green', 'Bad': 'red'} , labels={"x": "Reviews", "y": "Percentage"})
     
-    st.plotly_chart(fig)
+    # st.plotly_chart(fig)
 
     st.write("## What are the main product features that impact on customer satisfaction?")
+    "See the main features that affect the customer satisfaction, based on most voted reviews"
 
     if st.button("Generate Satisfaction Insights"):
     #Generate product insights using the OpenAI GPT-3 model
