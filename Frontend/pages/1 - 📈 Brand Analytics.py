@@ -10,9 +10,9 @@ logging.basicConfig(filename='app.log', filemode='w')
 logging.info(f"App Started")
 
 #Select path to all data
-#path_to_master_data='/home/sites/reviews_master_parquet/' # deployment path
+path_to_master_data='/home/sites/reviews_master_parquet_3/' # deployment path
 #path_to_master_data='/home/yhbedoya/Datathon/reviews_master_parquet/' # local path
-path_to_master_data='./master_data/reviews_master_parquet_3/' # local path Gabriel
+#path_to_master_data='./master_data/reviews_master_parquet_3/' # local path Gabriel
 
 
 #Select desired categories or read all categories in the folder
