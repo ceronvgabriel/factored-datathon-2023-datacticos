@@ -36,7 +36,10 @@ logging.basicConfig(filename='app.log', filemode='w')
 logging.info(f"App Started")
 
 #Start app
-st.title('Team Datacticos - Amazon Product Reviews')
+st.write('# Team Datacticos')
+st.write("# Amazon Product Reviews")
+st.write("### In this page you can get a deeper understanding of the reviews of a product for your brand")
+
 
 @st.cache_resource
 def generate_brands_list(df):
@@ -201,7 +204,7 @@ if 'selected_product' not in st.session_state:
     st.session_state.selected_product = None
 
 
-st.write("Select the category of interest")
+st.write("### Select your brand and product to generate summaries:")
 
 selected_category = st.selectbox('Select a Category', selected_categories)
 if selected_category != st.session_state.selected_category:
@@ -213,11 +216,10 @@ if selected_category != st.session_state.selected_category:
 df_cat = load_data_by_category(selected_category)
 print(f"shape of category df: {df_cat.shape}")
 
-st.write("Select a brand and a product to generate summaries of the most voted reviews and product insights")
 
 brandsList = generate_brands_list(df_cat)
 
-selected_brand = st.selectbox('Select a brand', brandsList)
+selected_brand = st.selectbox('Select your brand', brandsList)
 print(f"selected_brand: {selected_brand}")
 
 if selected_brand:
@@ -237,11 +239,17 @@ if selected_brand:
         st.session_state.selected_product = selected_product
         st.session_state.click_summaries = False
         st.session_state.click_insights = False
+    
+    #Number of reviews found for the selected product
+    num_reviews = selected_products_table[selected_products_table['title']==selected_product].shape[0]
+    st.write(f"#### Number of reviews found for the selected product: {num_reviews}")
+
 
 else:
     selected_product = None
 
-st.write("## Generate Product Insights from most voted reviews:")
+st.write("## Generate Product Insights")
+"#### Here you will get the positive and negative features of the product, and some ideas on how improve the product"
 if st.button("Generate Product Insights") or st.session_state.click_insights:
     #Generate product insights using the OpenAI GPT-3 model
     with st.spinner('Generating product insights...'):
@@ -249,6 +257,7 @@ if st.button("Generate Product Insights") or st.session_state.click_insights:
         st.session_state.click_insights = True
 
 st.write("## Generate Product Summaries from most voted reviews:")
+"#### Here you will get summaries of the most voted positive and negative reviews for the product"
 if st.button("Generate Product Summaries") or st.session_state.click_summaries:
     generate_summaries(selected_product)
     st.session_state.click_summaries = True
