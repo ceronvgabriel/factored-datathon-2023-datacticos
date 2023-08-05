@@ -8,7 +8,7 @@
 
 ## Description 
 
-This analytical product is a versatile task management tool designed to evaluate and get insight from customer reviews, Efforlessly organize data throught categories (e.g. All Electronics), set relevant indicators, and allow brands to know how to take action and boost their engagement with customers.
+This e2e product is a versatile analytical tool designed to evaluate and get insight from customer reviews. Efforlessly organize data throught categories (e.g. All Electronics), set relevant indicators, and allow brands to know how to take action and boost their engagement with customers (in a historical or streaming timeview).
 
 Data in Batch: 80% 
 
