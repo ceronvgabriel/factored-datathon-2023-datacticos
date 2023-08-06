@@ -17,7 +17,8 @@ logging.basicConfig(filename='app.log', filemode='w')
 logging.info(f"App Started")
 
 #Select path to all data
-path_to_streaming_data='/home/yhbedoya/Datathon/reviews_streaming_data/' # local path
+#path_to_streaming_data='/home/yhbedoya/Datathon/reviews_streaming_data/' # local path
+path_to_streaming_data='/home/sites/reviews_streaming_data/' # deployment path
 
 @st.cache_resource
 def load_streaming_data():
