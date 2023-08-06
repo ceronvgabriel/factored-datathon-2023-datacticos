@@ -13,8 +13,8 @@ logging.info(f"App Started")
 
 #Select path to all data
 #path_to_master_data='/home/sites/reviews_master_parquet/' # deployment path
-#path_to_master_data='/home/yhbedoya/Datathon/reviews_master_parquet/' # local path
-path_to_master_data='./master_data/reviews_master_parquet_2/' # local path Gabriel
+path_to_master_data='/home/yhbedoya/Datathon/reviews_master_parquet/' # local path
+#path_to_master_data='./master_data/reviews_master_parquet_2/' # local path Gabriel
 
 
 #Select desired categories or read all categories in the folder
@@ -366,6 +366,7 @@ if selected_brand:
     # Display bar chart of sentiment analysis
     
     fig=px.bar(df3["sentiment_bin"])
+    fig.for_each_trace(lambda t: t.update(name=t.name.replace("sentiment_bin", "Sentiment count")))
     st.plotly_chart(fig)
 
 

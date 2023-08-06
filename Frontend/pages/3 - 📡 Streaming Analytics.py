@@ -259,7 +259,7 @@ def plot_scatter(df):
 def generatePrompt(dfText):
     
     init = f"""Make an short interpretation of the data of the table provided between the tags $%& and &%$ in terms of Brand Perception, Engagement, Market Popularity. \n 
-    Dont define Brand Perception, Engagement, Market Popularity. \n 
+    Dont define Brand Perception, Engagement, Market Popularity. Don't mentione the word table \n 
     display the solution as: \n * Brand perception: ... \n * Engagement: ... \n * Market popularity:... \n Finally identify the strongest and weakest brand supporting your election \n $%&"""
 
     middle = dfText
@@ -288,7 +288,7 @@ streamingDf = load_streaming_data()
 categories = streamingDf["main_cat"].unique().tolist()
 
 st.title("Streaming data analysis")
-st.write("#### In this page you can find analytics and insights about ...")
+st.write("##### On this page, you'll discover analytics and valuable insights into the latest market activities. Stay up-to-date with what's happening in the market during the last few days. ")
 
 model, tokenizer, analyzer = load_model()
 
@@ -318,21 +318,24 @@ if selected_category:
     sentimentBins = product_sentiment_analysis(productDf)
     plot_horizontal_bar_chart(sentimentBins)
 
+    st.write(f"Take a look of the most relevant reviews for this product")
+
     product_summaries_insightsDf = product_summaries_insights(productDf)
     st.table(product_summaries_insightsDf)
 
     st.divider()
 
     st.write(f"### Trending brands in the :blue[{selected_category}] category")
-    st.write(f"This list shows the brands with more interactions during the last 7 days.")
+    st.write(f"The following chart provides an overview of customer perception and engagement across different branches within the category in the last 7 days. It illustrates how customers perceive each branch and their level of engagement based on their total interactions with the brand.")
 
     trend_brands_by_catDf = identify_trending_brands(categoryDf)
+
 
     #st.table(trend_brands_by_catDf)
 
     plot_scatter(trend_brands_by_catDf)
 
-    st.write("#### Would you like some hints about the above visualization?")
+    st.write("###### Would you like some hints about the above visualization?")
     if st.button("Generate hints"):
         hints = generatePlotHints(trend_brands_by_catDf)
         st.write(hints)
