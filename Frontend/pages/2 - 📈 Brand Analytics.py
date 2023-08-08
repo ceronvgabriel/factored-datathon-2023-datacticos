@@ -6,7 +6,7 @@ import numpy as np
 import os
 import logging
 import openai
-openai.api_key = "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"
+openai.api_key = "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"
 
 logging.basicConfig(filename='app.log', filemode='w')
 logging.info(f"App Started")

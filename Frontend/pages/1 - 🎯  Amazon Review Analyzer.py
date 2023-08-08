@@ -10,7 +10,7 @@ import nltk
 from nltk.sentiment import SentimentIntensityAnalyzer
 from transformers import BartTokenizer, BartForConditionalGeneration
 import openai
-openai.api_key = "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"
+openai.api_key = "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"
 
 
 #Select path to all data
