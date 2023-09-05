@@ -7,7 +7,7 @@ import logging
 
 import matplotlib.pyplot as plt
 import openai
-openai.api_key = "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"
+openai.api_key = "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"
 
 import nltk
 from nltk.sentiment import SentimentIntensityAnalyzer
@@ -18,7 +18,8 @@ logging.info(f"App Started")
 
 #Select path to all data
 #path_to_streaming_data='/home/yhbedoya/Datathon/reviews_streaming_data/' # local path
-path_to_streaming_data='/home/sites/reviews_streaming_data/' # deployment path
+#path_to_streaming_data='/home/sites/reviews_streaming_data/' # deployment path
+path_to_streaming_data='C:/Users/GABRIEL/Desktop/Datathon/Code/master_data/reviews_streaming_data/' # local path Gabriel
 
 @st.cache_resource
 def load_streaming_data():

@@ -10,13 +10,13 @@ import nltk
 from nltk.sentiment import SentimentIntensityAnalyzer
 from transformers import BartTokenizer, BartForConditionalGeneration
 import openai
-openai.api_key = "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"
+openai.api_key = "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"
 
 
 #Select path to all data
-path_to_master_data='/home/sites/reviews_master_parquet_3/' # deployment path
+#path_to_master_data='/home/sites/reviews_master_parquet_3/' # deployment path
 #path_to_master_data='/home/yhbedoya/Datathon/reviews_master_parquet/' # local path
-#path_to_master_data='./master_data/reviews_master_parquet/' # local path Gabriel
+path_to_master_data='C:/Users/GABRIEL/Desktop/Datathon/Code/master_data/reviews_master_parquet_3/' # local path Gabriel
 
 
 #Select desired categories or read all categories in the folder
